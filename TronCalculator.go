@@ -98,7 +98,7 @@ func worker(config *Config, wg *sync.WaitGroup, mu *sync.Mutex, successCount *in
 			return
 		}
 		if *totalCount%1000000 == 0 {
-			fmt.Printf("Attempted %dM times\n", *totalCount)
+			fmt.Printf("Attempted %dM times\n", *totalCount/1000000)
 		}
 		mu.Unlock()
 	}
