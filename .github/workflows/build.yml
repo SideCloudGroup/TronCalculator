@@ -1,0 +1,65 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.23.4
+
+      - name: Build
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o troncalculator-${{ matrix.goos }}-${{ matrix.goarch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: myprogram-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: myprogram-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ./artifacts
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts
+          asset_name: myprogram-${{ matrix.goos }}-${{ matrix.goarch }}
+          asset_content_type: application/octet-stream
