@@ -1,0 +1,3 @@
+regex = "(?i)sidecloud$" # Regular expression to match the address
+threads = 6 # Number of threads to use
+num = 1 # Number of addresses to find
